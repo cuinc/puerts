@@ -244,8 +244,7 @@ void FFunctionTranslator::Call(
 #endif
 
     auto CallFunctionPtr = CallFunction.Get();
-    auto FunctionCallspace = CallObject->GetFunctionCallspace(CallFunctionPtr, NULL);
-    if ((Function->FunctionFlags & FUNC_Native) && !(FunctionCallspace & FunctionCallspace::Remote) &&
+    if ((Function->FunctionFlags & FUNC_Native) && !(Function->FunctionFlags & FUNC_Net) &&
         !CallFunctionPtr->HasAnyFunctionFlags(FUNC_UbergraphFunction))
     {
         FastCall(Isolate, Context, Info, CallObject, CallFunctionPtr, Params);
@@ -280,7 +279,13 @@ void FFunctionTranslator::FastCall(v8::Isolate* Isolate, v8::Local<v8::Context>&
             Return->Property->InitializeValue_InContainer(Params);
         }
     }
-    FFrame NewStack(CallObject, CallFunction, Params, nullptr, CallFunction->ChildProperties);
+    FFrame NewStack(CallObject, CallFunction, Params, nullptr,
+#if ENGINE_MINOR_VERSION >= 25 || ENGINE_MAJOR_VERSION > 4
+        Function->ChildProperties
+#else
+        Function->Children
+#endif
+    );
 
     checkSlow(NewStack.Locals || Function->ParmsSize == 0);
     FOutParmRec** LastOut = &NewStack.OutParms;
@@ -558,7 +563,7 @@ void FFunctionTranslator::CallJs(v8::Isolate* Isolate, v8::Local<v8::Context>& C
     if (Params && Params != Stack.Locals)
     {
         // destruct properties on the stack, except for out params since we know we didn't use that memory
-        for (FProperty* Destruct = Function->DestructorLink; Destruct; Destruct = Destruct->DestructorLinkNext)
+        for (PropertyMacro* Destruct = Function->DestructorLink; Destruct; Destruct = Destruct->DestructorLinkNext)
         {
             if (!Destruct->HasAnyPropertyFlags(CPF_OutParm))
             {

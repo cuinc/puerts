@@ -11,17 +11,16 @@ namespace Puerts.UnitTest
     [TestFixture]
     public class GenTest
     {
+#if PUERTS_GENERAL
         [Test]
         public void GenericWrapper()
         {
-
             var jsEnv = new JsEnv(new TxtLoader());
             var wrapRender = jsEnv.ExecuteModule<Func<Editor.Generator.Wrapper.StaticWrapperInfo, string>>("puerts/templates/wrapper.tpl.mjs", "default");
             var genList = new List<Type>() { typeof(Dictionary<int, JsEnv>) };
             Editor.Generator.Wrapper.StaticWrapperInfo wrapperInfo = Editor.Generator.Wrapper.StaticWrapperInfo.FromType(typeof(Dictionary<int, JsEnv>), genList);
 
             string wrapperContent = wrapRender(wrapperInfo);
-            System.Console.WriteLine(wrapperContent);
             Assert.True((new Regex(@"<TValue>")).IsMatch(wrapperContent));
         }
 
@@ -52,7 +51,6 @@ namespace Puerts.UnitTest
             Editor.Generator.Wrapper.StaticWrapperInfo wrapperInfo = Editor.Generator.Wrapper.StaticWrapperInfo.FromType(typeof(Singleton1<Zombie>), genList);
 
             string wrapperContent = wrapRender(wrapperInfo);
-            System.Console.WriteLine(wrapperContent);
             Assert.True((new Regex(@"where T : Puerts.UnitTest.Singleton1<T>")).IsMatch(wrapperContent));
         }
 
@@ -139,5 +137,15 @@ namespace Puerts.UnitTest
             string wrapperContent = wrapRender(wrapperInfo);
             Assert.True((new Regex(@"where T : System.StringComparer")).IsMatch(wrapperContent));
         }
+
+        [Test]
+        public void NestedType()
+        {
+            Assert.True(
+                typeof(Dictionary<string, string>.ValueCollection.Enumerator)
+                    .GetFriendlyName().Contains("ValueCollection")
+            );
+        }
+#endif
     }
 }

@@ -6,6 +6,11 @@ namespace Puerts.UnitTest
     [TestFixture]
     public class EvalTest
     {
+        // [Test]
+        // public void ForceFail()
+        // {
+        //     Assert.True(1 == 2);
+        // }
         [Test]
         public void EvalError()
         {
@@ -201,19 +206,19 @@ namespace Puerts.UnitTest
             var loader = new TxtLoader();
             loader.AddMockFileContent("module1.mjs", @"
                 import module2 from './module2.mjs';
-                CS.System.Console.WriteLine('module1 loading');
+                // CS.System.Console.WriteLine('module1 loading');
 
                 function callMe(msg)
                 {
                     module2.callMe('module 2');
-                    CS.System.Console.WriteLine('callMe called', msg);
+                    // CS.System.Console.WriteLine('callMe called', msg);
                 }
 
                 class M1
                 {
                     constructor()
                     {
-                        CS.System.Console.WriteLine('M1');
+                        // CS.System.Console.WriteLine('M1');
                     }
                 }
 
@@ -221,12 +226,12 @@ namespace Puerts.UnitTest
             ");
             loader.AddMockFileContent("module2.mjs", @"
                 import module1 from './module1.mjs';
-                CS.System.Console.WriteLine('module2 loading');
+                // CS.System.Console.WriteLine('module2 loading');
 
                 function callMe(msg)
                 {
                     new module1.M1();
-                    CS.System.Console.WriteLine('callMe called', msg);
+                    // CS.System.Console.WriteLine('callMe called', msg);
                 }
 
 
@@ -286,5 +291,24 @@ namespace Puerts.UnitTest
 
             jsEnv.Dispose();
         }*/
+        internal class ESMTxtLoader: TxtLoader, Puerts.IModuleChecker
+        {
+            public bool IsESM(string s) {
+                return true;
+            }
+        }
+        [Test]
+        public void ESMLoaderTest() 
+        {
+            var loader = new ESMTxtLoader();
+            loader.AddMockFileContent("main.js", @"
+                export default 'esm export';
+            ");
+            var jsEnv = new JsEnv(loader);
+
+            string res = jsEnv.ExecuteModule<string>("main.js", "default");
+            Assert.AreEqual(res, "esm export");
+            jsEnv.Dispose();
+        }
     }
 }

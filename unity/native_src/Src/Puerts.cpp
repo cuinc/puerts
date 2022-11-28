@@ -8,7 +8,7 @@
 #include <cstring>
 #include "V8Utils.h"
 
-#define API_LEVEL 18
+#define API_LEVEL 19
 
 using puerts::JSEngine;
 using puerts::FValue;
@@ -698,7 +698,7 @@ V8_EXPORT void PushJSObjectForJSFunction(JSFunction *F, puerts::JSObject *V)
    F->Arguments.push_back(std::move(Value));
 }
 
-V8_EXPORT FResultInfo *InvokeJSFunction(JSFunction *Function, int argumentsLength, int HasResult)
+V8_EXPORT FResultInfo *InvokeJSFunction(JSFunction *Function, int HasResult)
 {
     if (Function->Invoke(HasResult))
     {
