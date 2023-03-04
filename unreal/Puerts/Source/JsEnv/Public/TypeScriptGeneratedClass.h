@@ -35,11 +35,9 @@ public:
 
     TSet<FName> FunctionToRedirect;
 
-    FCriticalSection PendingConstructJobMutex;
+    bool RedirectedToTypeScript = false;
 
-    TArray<PendingConstructJobInfo> PendingConstructInfos;
-
-    bool IsProcessingPendingConstructJob = false;
+    TMap<FName, FNativeFuncPtr> TempNativeFuncStorage;
 
 #if WITH_EDITOR
     bool NeedReBind = true;
@@ -47,11 +45,9 @@ public:
     bool FunctionToRedirectInitialized = false;
     static void NotifyRebind(UClass* Class);
     void LazyLoadRedirect();
-
-    DECLARE_FUNCTION(execLazyLoadCallJS);
 #endif
 
-    void ProcessPendingConstructJob();
+    DECLARE_FUNCTION(execLazyLoadCallJS);
 
     static void StaticConstructor(const FObjectInitializer& ObjectInitializer);
 
@@ -66,6 +62,8 @@ public:
     void CancelRedirection();
 
     bool NotSupportInject();
+
+    void RestoreNativeFunc();
 
     UPROPERTY()
     bool HasConstructor;
